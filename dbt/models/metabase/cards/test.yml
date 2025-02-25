@@ -1,0 +1,39 @@
+version: 2
+
+exposures:
+  - name: dataset_price
+    description: Describe the dataset price
+    type: analysis
+    url: http://localhost:3000/
+    maturity: low
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('insights_storage_storage_recommendation')
+
+    meta:
+      metabase:
+        name: deployed_from_api_2
+        display: pie
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: price_physical_total
+              type: sum
+          breakout:
+            - field: table_catalog
+            - field: table_schema
+          order_by:
+            - index: 0
+              from: aggregation
+              mode: desc
+
+#    tags: [<string>]
+
+#    label: "Human-Friendly Name for this Exposure!"
+#    config:
+#      enabled: true | false

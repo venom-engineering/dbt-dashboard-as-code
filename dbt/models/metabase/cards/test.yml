@@ -31,7 +31,6 @@ exposures:
             - index: 0
               from: aggregation
               mode: desc
-
 #    tags: [<string>]
 
 #    label: "Human-Friendly Name for this Exposure!"

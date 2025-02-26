@@ -11,7 +11,7 @@ exposures:
       email: <string>
 
     depends_on:
-      - ref('insights_storage_storage_recommendation')
+      - ref('metabase_orders')
 
     meta:
       metabase:
@@ -22,11 +22,11 @@ exposures:
 
         _query:
           aggregation:
-            - field: price_physical_total
+            - field: subtotal_cents
               type: sum
           breakout:
-            - field: table_catalog
-            - field: table_schema
+            - field: customer_type
+            - field: location_name
           order_by:
             - index: 0
               from: aggregation

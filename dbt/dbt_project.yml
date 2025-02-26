@@ -1,24 +1,33 @@
-name: "jaffle_shop"
-
 config-version: 2
-version: "0.1"
 
-profile: "jaffle_shop"
+name: "jaffle_shop"
+version: "3.0.0"
+require-dbt-version: ">=1.5.0"
+
+profile: default # Put your profile here
 
 model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["data-tests"]
 seed-paths: ["seeds"]
-test-paths: ["tests"]
-analysis-paths: ["analysis"]
 macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
 
 target-path: "target"
 clean-targets:
   - "target"
-  - "dbt_modules"
-  - "logs"
+  - "dbt_packages"
+
+vars:
+  "dbt_date:time_zone": "CET"
+
+seeds:
+  jaffle_shop:
+    +schema: jaffle_shop_raw
 
 models:
   jaffle_shop:
-    materialized: table
     staging:
-      materialized: view
+      +materialized: view
+    marts:
+      +materialized: table

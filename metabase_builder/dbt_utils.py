@@ -2,7 +2,6 @@ import json
 from dataclasses import dataclass
 from typing import List, Dict, Literal, Any
 
-
 @dataclass
 class DbtExposure:
     name: str
@@ -33,71 +32,69 @@ class DbtExposure:
     created_at: float
 
 
-
 def exposure_to_card(exposure, metabase, manifest):
 
     meta = exposure.meta
 
-    for node_id in exposure.depends_on['nodes']:
-
-        node = manifest['nodes'][node_id]
-
-        metabase_table_id = [
-            table_id for table_id, table in metabase.tables.items()
-            if (
-                metabase.databases[table.db_id].name == node['database']
-                and table.schema == node['schema']
-                and table.name == node['alias']
-            )
-        ]
-        break
-
-    if metabase_table_id:
-        metabase_table_id = metabase_table_id[0]
-    else:
-        return None
-
     card = meta.get('metabase')
+
     if not card:
         return None
 
+    # Get Metabase source table assuming only one table source.
+    # TODO: joins are not supported yet.
+    node_id = exposure.depends_on['nodes'][0]
+    node = manifest['nodes'][node_id]
+    table = metabase.get_table_by_node(node)
+
+    if not table:
+        print(f'Need to create Metabase table for node: {node_id}')
+        return None
+
+    reformat_card(exposure, card, table)
+
+    return card
+
+
+def reformat_card(exposure, card, table):
+    # Override description to set the exposure unique ID.
+    # This is the only way we found to match states between runs.
     meta_description = f'\n\nexposure_unique_id: {exposure.unique_id}'
     card['description'] = card.get('description', '') + meta_description
 
-
+    # Format dataset query.
     dataset_query = {
-        'database': metabase.tables[metabase_table_id].db_id,
+        'database': table.db_id,
         'type': 'query',
         'query': {
-            'source-table': metabase_table_id,
+            'source-table': table.id,
             'aggregation': [],
             'breakout': [],
             'order-by': [],
         },
     }
-    query = card.pop('_query')
 
     # Get only fields from dependencies
-    filtered_fields = {
-        field.name: field
-        for _, field in metabase.fields.items()
-        if field.table_id == 11
+    fields_dict = {
+        field.name: field for field in table.fields
     }
 
-    for aggregation in query['aggregation']:
-        field = filtered_fields[aggregation['field']]
+    _query = card.pop('_query')
+
+    for aggregation in _query['aggregation']:
+        field = fields_dict[aggregation['field']]
         dataset_query['query']['aggregation'].append([
             aggregation['type'], ['field', field.id, {'base-type': field.base_type}],
         ])
 
-    for breakout in query['breakout']:
-        field = filtered_fields[breakout['field']]
+    for breakout in _query['breakout']:
+        field = fields_dict[breakout['field']]
         dataset_query['query']['breakout'].append([
             'field', field.id, {'base-type': field.base_type},
         ])
 
-    for order_by in query['order_by']:
-        field = filtered_fields[breakout['field']]
+    for order_by in _query['order_by']:
+        field = fields_dict[breakout['field']]
         dataset_query['query']['order-by'].append([
             order_by['mode'], [order_by['from'], order_by['index']],
         ])

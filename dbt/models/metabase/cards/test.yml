@@ -23,7 +23,7 @@ exposures:
         _query:
           aggregation:
             - field: subtotal_cents
-              type: sum
+              type: avg
           breakout:
             - field: customer_type
             - field: location_name

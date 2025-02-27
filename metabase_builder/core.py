@@ -1,14 +1,14 @@
 import os
 import json
 
-from metabase.models import Metabase
+from metabase.metabase import Metabase
 from metabase.hooks import MetabaseHook
 
 from dbt_utils import read_manifest, get_exposures, exposure_to_card
 
 METABASE_URL = os.environ.get('METABASE_URL', 'http://localhost:3000')
-METABASE_API_KEY = os.environ.get('METABASE_API_KEY', 'mb_eB0jYj/56l6HGbMWZ6ICfkytAKRnQFjBRRyBh9hsB2k=')
-MANIFEST_PATH = '../../target/manifest.json'
+METABASE_API_KEY = os.environ.get('METABASE_API_KEY', 'mb_AkA5/0tkRewFZc+Ygz9MdRcWgz43f1H37RgKWEY9PzM=')
+MANIFEST_PATH = './target/manifest.json'
 
 metabase_hook = MetabaseHook(METABASE_URL, METABASE_API_KEY)
 metabase = Metabase(hook=metabase_hook)
@@ -28,13 +28,9 @@ if __name__ == '__main__':
         if not card_data:
             continue
 
-        card = [
-            card for card_id, card in metabase.cards.items()
-            if card.exposure_unique_id == exposure.unique_id
-        ]
+        card = metabase.get_card_by_exposure_id(exposure.unique_id)
 
         if card:
-            card = card[0]
             metabase.hook.put(f'card/{card.id}', card_data)
         else:
             metabase.hook.post('card/', card_data)

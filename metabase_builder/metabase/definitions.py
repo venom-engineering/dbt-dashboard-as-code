@@ -3,95 +3,17 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 
 
-class Metabase:
+# TODO: Sub definitions must be overriden everywhere in post-init.
 
-    def __init__(self, hook):
-        self.hook = hook
+@dataclass
+class MetabaseDefinition:
+    '''Represents a definition within a Metabase Instance'''
+    metabase: Any = field(init=True, repr=False, compare=False)
 
-        self.refresh_state()
-
-    def refresh_state(self):
-
-        # TODO: Dict or List for objects?
-
-        # Get all Metabase objects
-        self.databases = self.hook.get_databases()
-        self.tables = self.hook.get_tables()
-        self.fields = self.get_databases_fields()
-
-        self.cards = self.hook.get_cards()
-
-        self.dashboards = ...
-        self.users = ...  # ?
-        self.tiles = ...  # ?
-        self.datasets = ...  # ?
-
-        # TODO: Maps objects
-        ...
-
-    def get_databases_fields(self):
-        fields = {}
-        for database_id, _ in self.databases.items():
-            fields.update(self.hook.get_database_fields(database_id=database_id))
-        return fields
 
 
 @dataclass
-class Field:
-    '''
-    Represents a field within a table in Metabase.
-    '''
-
-    id: int
-    name: str
-    display_name: str
-    base_type: str
-    semantic_type: Optional[str]
-    table_name: str
-    table_id: int
-    schema: str
-
-@dataclass
-class Table:
-    '''
-    Represents a table in Metabase.
-    '''
-    # Primary Identifiers
-    id: int
-    name: str
-    display_name: str
-
-    # Database Information
-    db_id: int
-    db: Any  # TODO: how to override it in a clean way?
-
-    # Basic Information
-    description: Optional[str]
-    schema: str
-    entity_type: str
-
-    # Sync and Update Details
-    initial_sync_status: str  # Initial synchronization status (e.g., "complete")
-    updated_at: str  # Timestamp of the last update
-    created_at: str  # Timestamp of creation
-
-    # Visibility and Access
-    visibility_type: Optional[str]
-    show_in_getting_started: bool
-    active: bool
-
-    # Other
-    view_count: int
-    caveats: Optional[Any]
-    field_order: str
-    is_upload: bool
-    estimated_row_count: Optional[int]
-    points_of_interest: Optional[str]
-    database_require_filter: bool
-
-
-@dataclass
-class Database:
+class Database(MetabaseDefinition):
     '''
     Represents a database in Metabase.
     '''
@@ -144,8 +66,82 @@ class Database:
     refingerprint: str
     creator_id: int
 
+    # After init mappings
+    tables: List['Table'] = field(init=False, default_factory=list)
+
+
+
 @dataclass
-class Creator:
+class Table(MetabaseDefinition):
+    '''
+    Represents a table in Metabase.
+    '''
+    # Primary Identifiers
+    id: int
+    name: str
+    display_name: str
+
+    # Database Information
+    db_id: int
+
+    # Basic Information
+    description: Optional[str]
+    schema: str
+    entity_type: str
+
+    # Sync and Update Details
+    initial_sync_status: str  # Initial synchronization status (e.g., "complete")
+    updated_at: str  # Timestamp of the last update
+    created_at: str  # Timestamp of creation
+
+    # Visibility and Access
+    visibility_type: Optional[str]
+    show_in_getting_started: bool
+    active: bool
+
+    # Other
+    view_count: int
+    caveats: Optional[Any]
+    field_order: str
+    is_upload: bool
+    estimated_row_count: Optional[int]
+    points_of_interest: Optional[str]
+    database_require_filter: bool
+
+    # After init mappings
+    db: Database = field(init=True)  # As is it sent from API.
+    fields: List['Field'] = field(init=False, default_factory=list)
+
+    def __post_init__(self):
+        db = self.metabase.get_database_by_id(self.db_id)
+        self.db = db
+        db.tables.append(self)
+
+@dataclass
+class Field(MetabaseDefinition):
+    '''
+    Represents a field within a table in Metabase.
+    '''
+
+    id: int
+    name: str
+    display_name: str
+    base_type: str
+    semantic_type: Optional[str]
+    table_name: str
+    table_id: int
+    schema: str
+
+    # After init mappings
+    table: Table = field(init=False)
+
+    def __post_init__(self):
+        table = self.metabase.get_table_by_id(self.table_id)
+        self.table = table
+        table.fields.append(self)
+
+@dataclass
+class Creator(MetabaseDefinition):
     """Represents the creator of a Metabase card."""
     email: str
     first_name: str
@@ -159,7 +155,7 @@ class Creator:
 
 
 @dataclass
-class ResultMetadata:
+class ResultMetadata(MetabaseDefinition):
     """Represents metadata about a result field in a Metabase card."""
     description: Optional[str]
     semantic_type: str
@@ -177,7 +173,7 @@ class ResultMetadata:
 
 
 @dataclass
-class Collection:
+class Collection(MetabaseDefinition):
     """Represents a collection in Metabase."""
     authority_level: Optional[Any]
     description: str
@@ -197,7 +193,7 @@ class Collection:
 
 
 @dataclass
-class DatasetQuery:
+class DatasetQuery(MetabaseDefinition):
     """Represents the dataset query for a Metabase card."""
     database: int
     type: str
@@ -205,7 +201,7 @@ class DatasetQuery:
 
 
 @dataclass
-class Card:
+class Card(MetabaseDefinition):
     """Represents a Metabase card."""
     id: int
     name: str
@@ -213,7 +209,7 @@ class Card:
     description: str
     archived: bool
     view_count: int
-    table_id: Optional[int]
+    table_id: int
     creator: Creator
     database_id: int
     collection_id: int
@@ -246,9 +242,13 @@ class Card:
     created_at: Optional[str] = None
     public_uuid: Optional[str] = None
 
+    # After init mappings
+    table: Table = field(init=False)
     exposure_unique_id: Optional[str] = field(init=False, default=None)
 
     def __post_init__(self):
+        table = self.metabase.get_table_by_id(self.table_id)
+        self.table = table
 
         # Find match to exposure unique ID if exists
         pattern = r"exposure_unique_id:\s*(.*)"

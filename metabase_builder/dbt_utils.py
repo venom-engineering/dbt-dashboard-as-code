@@ -81,22 +81,34 @@ def reformat_card(exposure, card, table):
 
     _query = card.pop('_query')
 
-    for aggregation in _query['aggregation']:
-        field = fields_dict[aggregation['field']]
+    def _field_to_api_repr(options, field):
+        api_repr = [
+            'field',
+            field.id,
+            {
+                'base-type': field.base_type,
+                'temporal-unit': options.get('temporal_unit'),
+                'binning': options.get('binning'),
+            },
+        ]
+        return api_repr
+
+
+    for options in _query['aggregation']:
+        field = fields_dict[options['field']]
         dataset_query['query']['aggregation'].append([
-            aggregation['type'], ['field', field.id, {'base-type': field.base_type}],
+            options['type'], _field_to_api_repr(options, field),
         ])
 
-    for breakout in _query['breakout']:
-        field = fields_dict[breakout['field']]
-        dataset_query['query']['breakout'].append([
-            'field', field.id, {'base-type': field.base_type},
-        ])
+    for options in _query.get('breakout', []):
+        field = fields_dict[options['field']]
+        dataset_query['query']['breakout'].append(
+            _field_to_api_repr(options, field)
+        )
 
-    for order_by in _query['order_by']:
-        field = fields_dict[breakout['field']]
+    for options in _query.get('order_by', []):
         dataset_query['query']['order-by'].append([
-            order_by['mode'], [order_by['from'], order_by['index']],
+            options['mode'], [options['from'], options['index']],
         ])
 
     card['dataset_query'] = dataset_query

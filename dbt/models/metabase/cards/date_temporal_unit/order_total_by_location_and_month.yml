@@ -1,8 +1,8 @@
 version: 2
 
 exposures:
-  - name: dataset_price
-    description: Describe the dataset price
+  - name: order_total_by_location_and_month
+    description: Order total by location and month of order.
     type: analysis
     owner:
       name: <string>
@@ -13,19 +13,16 @@ exposures:
 
     meta:
       metabase:
-        name: deployed_from_api_2
-        display: pie
+        name: order_total_by_location_and_month
+        display: bar
         description: this is a description
         visualization_settings: {}
 
         _query:
           aggregation:
-            - field: subtotal_cents
-              type: avg
+            - field: order_total
+              type: sum
           breakout:
-            - field: customer_type
             - field: location_name
-          order_by:
-            - index: 0
-              from: aggregation
-              mode: desc
+            - field: ordered_at
+              temporal_unit: month

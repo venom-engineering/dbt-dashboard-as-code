@@ -1,8 +1,8 @@
 version: 2
 
 exposures:
-  - name: dataset_price
-    description: Describe the dataset price
+  - name: order_total_by_count_items_bin_default
+    description: Example for Binning with default
     type: analysis
     owner:
       name: <string>
@@ -13,19 +13,21 @@ exposures:
 
     meta:
       metabase:
-        name: deployed_from_api_2
-        display: pie
+        name: order_total_by_count_items_bin_default
+        display: bar
         description: this is a description
         visualization_settings: {}
 
         _query:
           aggregation:
-            - field: subtotal_cents
+            - field: order_total
               type: avg
           breakout:
-            - field: customer_type
-            - field: location_name
+            - field: count_order_items
+              binning:
+                strategy: default
+
           order_by:
             - index: 0
-              from: aggregation
+              from: breakout
               mode: desc

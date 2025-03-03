@@ -27,8 +27,6 @@ exposures:
               binning:
                 strategy: bin-width
                 bin-width: 5
-
           order_by:
-            - index: 0
-              from: breakout
+            - field: count_order_items
               mode: desc

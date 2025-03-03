@@ -26,6 +26,5 @@ exposures:
             - field: customer_type
             - field: location_name
           order_by:
-            - index: 0
-              from: aggregation
+            - field: subtotal_cents
               mode: desc

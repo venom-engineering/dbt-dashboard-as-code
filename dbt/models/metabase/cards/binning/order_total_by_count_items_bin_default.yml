@@ -26,8 +26,6 @@ exposures:
             - field: count_order_items
               binning:
                 strategy: default
-
           order_by:
-            - index: 0
-              from: breakout
+            - field: count_order_items
               mode: desc

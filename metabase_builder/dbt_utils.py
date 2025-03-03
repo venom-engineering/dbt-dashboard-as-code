@@ -93,22 +93,34 @@ def reformat_card(exposure, card, table):
         ]
         return api_repr
 
-
-    for options in _query['aggregation']:
+    aggregations = _query['aggregation']
+    breakouts = _query.get('breakout', [])
+    for options in aggregations:
         field = fields_dict[options['field']]
         dataset_query['query']['aggregation'].append([
             options['type'], _field_to_api_repr(options, field),
         ])
 
-    for options in _query.get('breakout', []):
+    for options in breakouts:
         field = fields_dict[options['field']]
         dataset_query['query']['breakout'].append(
             _field_to_api_repr(options, field)
         )
 
     for options in _query.get('order_by', []):
+
+        aggregation_index = next((i for i, opts in enumerate(aggregations) if opts['field'] == options['field']), None)
+        breakout_options = next((opts for _, opts in enumerate(breakouts) if opts['field'] == options['field']), None)
+
+        if aggregation_index is not None:
+            field_api_repr = ['aggregation', aggregation_index]
+        elif breakout_options is not None:
+            field_api_repr = _field_to_api_repr(breakout_options, fields_dict[breakout_options['field']])
+        else:
+            raise Exception(f'{options["field"]} is not found in {exposure.name} aggregations nor breakouts.')
+
         dataset_query['query']['order-by'].append([
-            options['mode'], [options['from'], options['index']],
+            options.get('mode', 'asc'), field_api_repr,
         ])
 
     card['dataset_query'] = dataset_query

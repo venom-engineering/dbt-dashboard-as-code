@@ -1,0 +1,32 @@
+version: 2
+
+exposures:
+  - name: sankey_location_food_breakdown
+    description: Distributed of total order across locations and the number of food items per order
+    type: analysis
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('metabase_orders')
+
+    meta:
+      metabase:
+        name: sankey_location_food_breakdown
+        display: sankey
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: order_total
+              type: sum
+          breakout:
+            - field: location_name
+            - field: count_food_items
+          order_by:
+            - field: location_name
+              mode: asc  # optional
+            - field: count_food_items
+              mode: desc

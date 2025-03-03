@@ -1,0 +1,28 @@
+version: 2
+
+exposures:
+  - name: order_total_by_location_and_month
+    description: Order total by location and month of order.
+    type: analysis
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('metabase_orders')
+
+    meta:
+      metabase:
+        name: order_total_by_location_and_month
+        display: bar
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: order_total
+              type: sum
+          breakout:
+            - field: location_name
+            - field: ordered_at
+              temporal_unit: month

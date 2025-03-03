@@ -67,7 +67,7 @@ class Metabase:
             if card.exposure_unique_id == exposure_unique_id
         ]
         if not matched_cards:
-            print(f'No card match for exposure: {exposure_unique_id}')
+            ...  # print(f'No card match for exposure: {exposure_unique_id}')
             return None
         elif len(matched_cards) > 1:
             raise Exception(f'Multiple cards match for exposure: {exposure_unique_id}')

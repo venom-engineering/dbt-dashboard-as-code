@@ -7,7 +7,7 @@ from metabase.hooks import MetabaseHook
 from dbt_utils import read_manifest, get_exposures, exposure_to_card
 
 METABASE_URL = os.environ.get('METABASE_URL', 'http://localhost:3000')
-METABASE_API_KEY = os.environ.get('METABASE_API_KEY', 'mb_AkA5/0tkRewFZc+Ygz9MdRcWgz43f1H37RgKWEY9PzM=')
+METABASE_API_KEY = os.environ.get('METABASE_API_KEY', 'mb_QmKdm1Dzv5F+QPq0M9sI2q35OYjz+Q80hWG9+PT2Gr4=')
 MANIFEST_PATH = './target/manifest.json'
 
 metabase_hook = MetabaseHook(METABASE_URL, METABASE_API_KEY)
@@ -31,6 +31,8 @@ if __name__ == '__main__':
         card = metabase.get_card_by_exposure_id(exposure.unique_id)
 
         if card:
-            metabase.hook.put(f'card/{card.id}', card_data)
+            print(f'Updating card {card.name} (ID: {card.id}).')
+            metabase.hook.  put(f'card/{card.id}', card_data)
         else:
+            print(f'Creating card {exposure.name}.')
             metabase.hook.post('card/', card_data)

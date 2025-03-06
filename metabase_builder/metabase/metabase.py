@@ -1,6 +1,7 @@
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from metabase.definitions import Database, Table, Field, Card
+from .definitions import Card, Database, Field, Table
+
 
 class Metabase:
 

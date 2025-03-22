@@ -1,0 +1,32 @@
+version: 2
+
+exposures:
+  - name: order_total_by_count_items_bin_width
+    description: Example for Binning with bin width
+    type: analysis
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('metabase_orders')
+
+    meta:
+      metabase:
+        name: order_total_by_count_items_bin_width
+        display: bar
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: order_total
+              type: avg
+          breakout:
+            - field: count_order_items
+              binning:
+                strategy: bin-width
+                bin-width: 5
+          order_by:
+            - field: count_order_items
+              mode: desc

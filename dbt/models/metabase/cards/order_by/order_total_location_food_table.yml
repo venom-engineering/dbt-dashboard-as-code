@@ -1,0 +1,32 @@
+version: 2
+
+exposures:
+  - name: order_total_location_food_table
+    description: Distributed of total order across locations and the number of food items per order
+    type: analysis
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('metabase_orders')
+
+    meta:
+      metabase:
+        name: order_total_location_food_table
+        display: table
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: order_total
+              type: sum
+          breakout:
+            - field: location_name
+            - field: count_food_items
+          order_by:
+            - field: location_name
+              mode: asc  # optional
+            - field: order_total
+              mode: desc

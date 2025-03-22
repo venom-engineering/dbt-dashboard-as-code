@@ -1,0 +1,12 @@
+default:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: venom-engineering
+      dataset: jaffle_shop
+      threads: 4
+      timeout_seconds: 300
+      location: EU
+      priority: interactive

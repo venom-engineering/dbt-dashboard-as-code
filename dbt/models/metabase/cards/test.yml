@@ -1,0 +1,30 @@
+version: 2
+
+exposures:
+  - name: dataset_price
+    description: Describe the dataset price
+    type: analysis
+    owner:
+      name: <string>
+      email: <string>
+
+    depends_on:
+      - ref('metabase_orders')
+
+    meta:
+      metabase:
+        name: deployed_from_api_2
+        display: pie
+        description: this is a description
+        visualization_settings: {}
+
+        _query:
+          aggregation:
+            - field: subtotal_cents
+              type: avg
+          breakout:
+            - field: customer_type
+            - field: location_name
+          order_by:
+            - field: subtotal_cents
+              mode: desc
